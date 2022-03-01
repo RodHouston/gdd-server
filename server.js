@@ -5,6 +5,7 @@ require("dotenv").config();
 const session = require("express-session");
 const Redis = require("ioredis");
 const connectRedis = require("connect-redis");
+const User = require("./model/User");
 
 const main = async () => {
   // initialize the app
@@ -43,9 +44,52 @@ const main = async () => {
   app.use(express.json());
   app.use(cors());
 
+  // set up sessions
+  app.use(
+    session({
+      name: "cid",
+      store: new RedisStore({
+        client: redis,
+        disableTouch: true,
+      }),
+      cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 30,
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production", // disable for dev in localhost
+        //domain: __PROD__ ? ".herokuapp.com" : undefined, // add domain when in prod
+      },
+      secret: process.env.COOKIE_SECRET,
+      resave: false,
+      saveUninitialized: false,
+    })
+  );
+
   // set up routes
   app.get("/", (req, res) => {
+    console.log(req.session);
     res.json({ hello: "world" });
+  });
+
+  app.get("/protected", (req, res) => {
+    console.log(req.session);
+    if (req.session.user) {
+      res.json(req.session.user);
+    } else {
+      res.send("nope!");
+    }
+  });
+
+  app.get("/login", (req, res) => {
+    console.log(req.session);
+    req.session.user = "me";
+    res.redirect("/");
+  });
+
+  app.get("/logout", async (req, res) => {
+    console.log(req.session);
+    await req.session.destroy();
+    res.send("destroyed");
   });
 
   // boot up server
