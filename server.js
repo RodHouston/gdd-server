@@ -19,6 +19,11 @@ const main = async () => {
   app.use(express.json());
   app.use(cors());
 
+  // set up routes
+  app.get("/", (req, res) => {
+    res.json({ hello: "world" });
+  });
+
   // boot up server
   const PORT = 8000;
   app.listen(PORT, () => {
