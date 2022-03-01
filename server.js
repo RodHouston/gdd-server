@@ -1,16 +1,19 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+require("dotenv").config();
 
 const main = async () => {
   // initialize the app
   const app = express();
 
   // connect mongoose
-  await mongoose.connect("mongodb://localhost:27017/gdd");
-  mongoose.connection.once("open", () => {
+  await mongoose.connect(process.env.MONGODB_URI);
+  if (mongoose.connection.readyState === 1) {
     console.log("Mongoose connected");
-  });
+  } else {
+    console.log("Mongoose Not Connected!");
+  }
 
   // set up middleware
   app.use(express.json());
