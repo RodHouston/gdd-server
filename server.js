@@ -5,7 +5,6 @@ require("dotenv").config();
 const session = require("express-session");
 const Redis = require("ioredis");
 const connectRedis = require("connect-redis");
-const User = require("./model/User");
 
 const main = async () => {
   // initialize the app
