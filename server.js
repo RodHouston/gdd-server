@@ -26,7 +26,7 @@ const main = async () => {
 
   // boot up server
   app.listen(process.env.PORT || 8000, () => {
-    console.log("listening on port " + PORT);
+    console.log("listening...");
   });
 };
 
