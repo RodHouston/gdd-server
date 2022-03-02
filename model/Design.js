@@ -20,6 +20,7 @@ const designSchema = mongoose.Schema({
   items: [Item],
   gameLoop: [{ type: String, required: true }],
   stretchGoals: [{ type: String, required: true }],
+  deleted: { type: Boolean, required: true },
 });
 
 const Design = mongoose.model("Design", designSchema);
