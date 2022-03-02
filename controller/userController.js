@@ -4,6 +4,7 @@ const argon2 = require("argon2");
 
 const router = express.Router();
 
+// register user
 router.post("/register", async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -39,6 +40,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
+// login user
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -65,6 +67,7 @@ router.post("/login", async (req, res) => {
   res.json({ error: "Passwords didn't match" });
 });
 
+// logout user
 router.post("/logout", async (req, res) => {
   await req.session.destroy();
   res.json({ destroyed: true });
