@@ -5,7 +5,12 @@ const router = express.Router();
 // create a new design document
 router.post("/create", async (req, res) => {
   try {
-    const newDoc = new Design(req.body);
+    const newDoc = new Design({
+      ...req.body,
+      creator: req.session.user._id,
+      collaborators: [],
+      deleted: false,
+    });
     await newDoc.save();
     res.json(newDoc);
   } catch (err) {
