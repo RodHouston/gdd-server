@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Character = require("./Character");
+const CollaboratorRole = require("./CollaboratorRole");
 const Gameplay = require("./Gameplay");
 const Item = require("./Item");
 const Location = require("./Location");
@@ -13,7 +14,7 @@ const designSchema = mongoose.Schema({
   monetization: { type: String, required: true },
   story: { type: String, required: true },
   creator: { type: mongoose.Schema.Types.ObjectId, required: true },
-  collaborators: [mongoose.Schema.Types.ObjectId],
+  collaborators: [CollaboratorRole],
   gameplay: [Gameplay],
   characters: [Character],
   locations: [Location],
