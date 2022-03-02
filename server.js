@@ -9,6 +9,7 @@ const connectRedis = require("connect-redis");
 const main = async () => {
   // initialize the app
   const app = express();
+  console.log(process.env.NODE_ENV);
 
   app.set("trust proxy", 1);
 
