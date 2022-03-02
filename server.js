@@ -41,7 +41,12 @@ const main = async () => {
 
   // set up middleware
   app.use(express.json());
-  app.use(cors());
+  app.use(
+    cors({
+      origin: ["https://www.gamedocs.app", "http://localhost:3000"],
+      credentials: true,
+    })
+  );
 
   // set up sessions
   app.use(
@@ -54,7 +59,8 @@ const main = async () => {
       cookie: {
         maxAge: 1000 * 60 * 60 * 24 * 30,
         httpOnly: true,
-        sameSite: "lax",
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        proxy: process.env.NODE_ENV === "production",
         secure: process.env.NODE_ENV === "production", // disable for dev in localhost
         //domain: __PROD__ ? ".herokuapp.com" : undefined, // add domain when in prod
       },
@@ -72,6 +78,7 @@ const main = async () => {
 
   app.get("/protected", (req, res) => {
     console.log(req.session);
+    console.log("USER: ", req.session.user);
     if (req.session.user) {
       res.json(req.session.user);
     } else {
@@ -82,6 +89,7 @@ const main = async () => {
   app.get("/login", (req, res) => {
     console.log(req.session);
     req.session.user = "me";
+    console.log(req.session);
     res.redirect("/");
   });
 
