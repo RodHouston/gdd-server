@@ -5,6 +5,7 @@ require("dotenv").config();
 const session = require("express-session");
 const Redis = require("ioredis");
 const connectRedis = require("connect-redis");
+const userController = require("./controller/userController");
 
 const main = async () => {
   // initialize the app
@@ -99,6 +100,8 @@ const main = async () => {
     await req.session.destroy();
     res.send("destroyed");
   });
+
+  app.use("/user", userController);
 
   // boot up server
   app.listen(process.env.PORT || 8000, () => {
