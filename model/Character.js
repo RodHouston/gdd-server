@@ -6,6 +6,4 @@ const characterSchema = mongoose.Schema({
   image: { type: String, required: true },
 });
 
-const Character = mongoose.model("Character", characterSchema);
-
-module.exports = Character;
+module.exports = characterSchema;

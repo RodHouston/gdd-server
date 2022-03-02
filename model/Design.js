@@ -1,9 +1,9 @@
 const mongoose = require("mongoose");
-const Character = require("./Character");
-const CollaboratorRole = require("./CollaboratorRole");
-const Gameplay = require("./Gameplay");
-const Item = require("./Item");
-const Location = require("./Location");
+const characterSchema = require("./Character");
+const collaboratorRoleSchema = require("./CollaboratorRole");
+const gameplaySchema = require("./Gameplay");
+const itemSchema = require("./Item");
+const locationSchema = require("./Location");
 
 const designSchema = mongoose.Schema({
   image: { type: String, required: true },
@@ -14,11 +14,11 @@ const designSchema = mongoose.Schema({
   monetization: { type: String, required: true },
   story: { type: String, required: true },
   creator: { type: mongoose.Schema.Types.ObjectId, required: true },
-  collaborators: [CollaboratorRole],
-  gameplay: [Gameplay],
-  characters: [Character],
-  locations: [Location],
-  items: [Item],
+  collaborators: [collaboratorRoleSchema],
+  gameplay: [gameplaySchema],
+  characters: [characterSchema],
+  locations: [locationSchema],
+  items: [itemSchema],
   gameLoop: [{ type: String, required: true }],
   stretchGoals: [{ type: String, required: true }],
   deleted: { type: Boolean, required: true },

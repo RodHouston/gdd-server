@@ -5,6 +5,4 @@ const gameplaySchema = mongoose.Schema({
   description: { type: String, required: true },
 });
 
-const Gameplay = mongoose.model("Gameplay", gameplaySchema);
-
-module.exports = Gameplay;
+module.exports = gameplaySchema;

@@ -6,6 +6,4 @@ const locationSchema = mongoose.Schema({
   image: { type: String, required: true },
 });
 
-const Location = mongoose.model("Location", locationSchema);
-
-module.exports = Location;
+module.exports = locationSchema;

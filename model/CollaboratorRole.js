@@ -5,9 +5,4 @@ const collaboratorRoleSchema = mongoose.Schema({
   role: { type: String, required: true },
 });
 
-const CollaboratorRole = mongoose.model(
-  "CollaboratorRole",
-  collaboratorRoleSchema
-);
-
-module.exports = CollaboratorRole;
+module.exports = collaboratorRoleSchema;
