@@ -98,9 +98,19 @@ router.post("/login", async (req, res) => {
 });
 
 // logout user
-router.post("/logout", async (req, res) => {
+router.delete("/logout", async (req, res) => {
   await req.session.destroy();
   res.json({ destroyed: true });
+});
+
+// get user data from cookie-sessions
+// "me" query
+router.get("/", async (req, res) => {
+  try {
+    res.json(req.session.user);
+  } catch (err) {
+    res.json({ error: err });
+  }
 });
 
 module.exports = router;
