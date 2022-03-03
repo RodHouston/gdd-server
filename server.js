@@ -73,6 +73,9 @@ const main = async () => {
     })
   );
 
+  // set up app to refresh user data on each page
+  app.use(isAuth);
+
   // set up routes
   app.get("/", (req, res) => {
     console.log(req.session);
