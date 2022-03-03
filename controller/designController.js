@@ -1,5 +1,6 @@
 const express = require("express");
 const Design = require("../model/Design");
+const User = require("../model/User");
 const router = express.Router();
 
 // create a new design document starting from the name property
@@ -8,15 +9,21 @@ router.post("/create", async (req, res) => {
     const newDoc = new Design({
       name: req.body.name,
       creator: req.session.user._id,
-      image: "placeholder",
+      image: "https://joybee.s3.amazonaws.com/37ca0cc0f10936bd31bd2ec38ae31e25",
       collaborators: [],
       characters: [],
       locations: [],
       items: [],
       gameplay: [],
+      genre: "ADVENTURE",
       deleted: false,
     });
     await newDoc.save();
+
+    const newDocId = newDoc._id;
+    await User.findByIdAndUpdate(req.session.user._id, {
+      $push: { designs: newDocId },
+    });
     res.json(newDoc);
   } catch (err) {
     res.json({ error: err });

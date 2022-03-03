@@ -7,6 +7,7 @@ const Redis = require("ioredis");
 const connectRedis = require("connect-redis");
 const userController = require("./controller/userController");
 const designController = require("./controller/designController");
+const isAuth = require("./utils/isAuth");
 
 const main = async () => {
   // initialize the app
@@ -72,6 +73,9 @@ const main = async () => {
       saveUninitialized: false,
     })
   );
+
+  // set up app to refresh user data on each page
+  app.use(isAuth);
 
   // set up routes
   app.get("/", (req, res) => {
