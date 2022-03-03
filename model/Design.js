@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const GENRE = require("../utils/genres");
 const characterSchema = require("./Character");
 const collaboratorRoleSchema = require("./CollaboratorRole");
 const gameplaySchema = require("./Gameplay");
@@ -21,6 +22,7 @@ const designSchema = mongoose.Schema({
   items: [itemSchema],
   gameLoop: [String],
   stretchGoals: [String],
+  genre: { type: String, required: true, enum: GENRE },
   deleted: { type: Boolean, required: true },
 });
 
