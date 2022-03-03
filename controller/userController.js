@@ -1,6 +1,7 @@
 const express = require("express");
 const User = require("../model/User");
 const argon2 = require("argon2");
+const Design = require("../model/Design");
 
 const router = express.Router();
 
@@ -107,7 +108,30 @@ router.delete("/logout", async (req, res) => {
 // "me" query
 router.get("/", async (req, res) => {
   try {
-    res.json(req.session.user);
+    // get designs user owns and collaborates on
+    const collabs = req.session.user.collabs; // [ design_id]
+    const designs = req.session.user.designs;
+    const allDesigns = await Design.find({
+      _id: { $in: [...collabs, ...designs] },
+    });
+    const myDesigns = allDesigns.filter(
+      (d) => String(d.creator) === String(req.session.user._id)
+    );
+    const collabDesigns = allDesigns.filter(
+      (d) => String(d.creator) !== String(req.session.user._id)
+    );
+
+    // get colloborator ids > user _ids
+    const collaborators = await User.find({
+      _id: { $in: req.session.user.collaborators },
+    });
+
+    res.json({
+      user: req.session.user,
+      myDesigns,
+      collabDesigns,
+      collaborators,
+    });
   } catch (err) {
     res.json({ error: err });
   }

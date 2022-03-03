@@ -11,7 +11,8 @@ const userSchema = mongoose.Schema({
   location: { type: String, required: true },
   description: { type: String, required: true },
   collabRequests: [{ type: mongoose.Schema.Types.ObjectId }], // requests from other users to join your project
-  acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId }], // your requests that have been accepted
+  acceptedRequests: [{ type: mongoose.Schema.Types.ObjectId }],
+  collaboratorIds: [{ type: mongoose.Schema.Types.ObjectId }], // your requests that have been accepted
 });
 
 const User = mongoose.model("User", userSchema);

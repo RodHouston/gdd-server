@@ -7,6 +7,7 @@ const Redis = require("ioredis");
 const connectRedis = require("connect-redis");
 const userController = require("./controller/userController");
 const designController = require("./controller/designController");
+const isAuth = require("./utils/isAuth");
 
 const main = async () => {
   // initialize the app

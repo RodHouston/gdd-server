@@ -1,7 +1,7 @@
 const User = require("../model/User");
 
 // this function will update the stored user object on each page load
-export const isAuth = async (req, res, next) => {
+const isAuth = async (req, res, next) => {
   if (!req.session.user) {
     return next();
   } else {
@@ -14,3 +14,5 @@ export const isAuth = async (req, res, next) => {
     return next();
   }
 };
+
+module.exports = isAuth;
