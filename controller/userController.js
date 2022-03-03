@@ -1,11 +1,38 @@
 const express = require("express");
 const User = require("../model/User");
 const argon2 = require("argon2");
+<<<<<<< HEAD
+=======
+const multer = require("multer");
+// const { uploadFile } = require("../utils/s3");
+
+// const upload = multer({ dest: "uploads/" });
+>>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
 
 const router = express.Router();
 
 
 router.post("/register", async (req, res) => {
+<<<<<<< HEAD
+=======
+  try {
+    // upload user avatar to s3 and capture img path
+    // const file = req.file;
+    // set up default image
+    let img =
+      "https://joybee.s3.amazonaws.com/37ca0cc0f10936bd31bd2ec38ae31e25";
+
+    // // if image file present, upload to s3 and overwrite the default img
+    // if (file) {
+    //   console.log(file.mimetype);
+    //   const allowedImgTypes = ["image/jpeg", "image/png"];
+    //   if (allowedImgTypes.includes(file.mimetype)) {
+    //     console.log("file type allowed");
+    //     const result = await uploadFile(file);
+    //     img = result.Location;
+    //   }
+    // }
+>>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
 
   try {
     const { username, email, password } = req.body;
@@ -77,9 +104,24 @@ router.post("/login", async (req, res) => {
   res.json({ error: "Passwords didn't match" });
 });
 
+<<<<<<< HEAD
 router.post("/logout", async (req, res) => {
+=======
+// logout user
+router.delete("/logout", async (req, res) => {
+>>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
   await req.session.destroy();
   res.json({ destroyed: true });
+});
+
+// get user data from cookie-sessions
+// "me" query
+router.get("/", async (req, res) => {
+  try {
+    res.json(req.session.user);
+  } catch (err) {
+    res.json({ error: err });
+  }
 });
 
 module.exports = router;

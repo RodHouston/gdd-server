@@ -7,6 +7,7 @@ router.post("/create", async (req, res) => {
   try {
     const newDoc = new Design({
       ...req.body,
+      image: "blah",
       creator: req.session.user._id,
       collaborators: [],
       deleted: false,
