@@ -2,14 +2,18 @@ const express = require("express");
 const Design = require("../model/Design");
 const router = express.Router();
 
-// create a new design document
+// create a new design document starting from the name property
 router.post("/create", async (req, res) => {
   try {
     const newDoc = new Design({
-      ...req.body,
-      image: "blah",
+      name: req.body.name,
       creator: req.session.user._id,
+      image: "placeholder",
       collaborators: [],
+      characters: [],
+      locations: [],
+      items: [],
+      gameplay: [],
       deleted: false,
     });
     await newDoc.save();
@@ -20,6 +24,20 @@ router.post("/create", async (req, res) => {
 });
 
 // edit document
+router.put("/edit/:editid", async (req, res) => {
+  try {
+    const { editid } = req.params;
+    const { update } = req.body;
+    console.log("editod: ", editid);
+    console.log("update: ", update);
+    const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
+      new: true,
+    });
+    res.json(updatedDoc);
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
 
 // move document to trash
 router.put("/trash/:designid", async (req, res) => {
