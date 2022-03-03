@@ -4,9 +4,32 @@ const argon2 = require("argon2");
 
 const router = express.Router();
 
+// Old Register pre-commit
+// const { uploadFile } = require("../utils/s3");
+
+// const upload = multer({ dest: "uploads/" });
+
 router.post("/register", async (req, res) => {
+  console.log("inside reg");
   try {
+    //     // upload user avatar to s3 and capture img path
+    //     // const file = req.file;
+    //     // set up default image
+    //     let img =
+    //       "https://joybee.s3.amazonaws.com/37ca0cc0f10936bd31bd2ec38ae31e25";
+
+    //     // // if image file present, upload to s3 and overwrite the default img
+    //     // if (file) {
+    //     //   console.log(file.mimetype);
+    //     //   const allowedImgTypes = ["image/jpeg", "image/png"];
+    //     //   if (allowedImgTypes.includes(file.mimetype)) {
+    //     //     console.log("file type allowed");
+    //     //     const result = await uploadFile(file);
+    //     //     img = result.Location;
+    //     //   }
+    //     // }
     const { username, email, password } = req.body;
+    console.log(req.body);
     // confirm username and email is not taken
     const userAlreadyExists = await User.findOne({
       $or: [
@@ -24,18 +47,28 @@ router.post("/register", async (req, res) => {
       return;
     }
 
-    const hashedPassword = await argon2.hash(req.body.password);
+    const hashedPassword = await argon2.hash(password);
 
+    console.log("hello there");
     const newUser = new User({
       username: req.body.username,
       email: req.body.email,
       password: hashedPassword,
+      company: req.body.company,
+      description: req.body.description,
+      location: req.body.location,
+      image: req.body.image,
+      designs: [],
+      collabs: [],
+      collabRequests: [],
+      acceptedRequests: [],
     });
+
     await newUser.save();
     req.session.user = newUser;
     res.json(newUser);
   } catch (err) {
-    res.json(err);
+    res.json({ error: "internal server error" });
   }
 });
 
@@ -65,9 +98,19 @@ router.post("/login", async (req, res) => {
   res.json({ error: "Passwords didn't match" });
 });
 
-router.post("/logout", async (req, res) => {
+router.delete("/logout", async (req, res) => {
   await req.session.destroy();
   res.json({ destroyed: true });
+});
+
+// get user data from cookie-sessions
+// "me" query
+router.get("/", async (req, res) => {
+  try {
+    res.json(req.session.user);
+  } catch (err) {
+    res.json({ error: err });
+  }
 });
 
 module.exports = router;

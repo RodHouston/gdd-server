@@ -6,6 +6,7 @@ const session = require("express-session");
 const Redis = require("ioredis");
 const connectRedis = require("connect-redis");
 const userController = require("./controller/userController");
+const designController = require("./controller/designController");
 
 const main = async () => {
   // initialize the app
@@ -102,6 +103,7 @@ const main = async () => {
   });
 
   app.use("/user", userController);
+  app.use("/doc", designController);
 
   // boot up server
   app.listen(process.env.PORT || 8000, () => {
