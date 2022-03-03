@@ -1,35 +1,14 @@
 const express = require("express");
 const User = require("../model/User");
 const argon2 = require("argon2");
-const multer = require("multer");
-const { uploadFile } = require("../utils/s3");
-
-const upload = multer({ dest: "uploads/" });
 
 const router = express.Router();
 
-// register user
+
 router.post("/register", async (req, res) => {
+
   try {
-    // upload user avatar to s3 and capture img path
-    const file = req.file;
-    // set up default image
-    let img =
-      "https://joybee.s3.amazonaws.com/37ca0cc0f10936bd31bd2ec38ae31e25";
-
-    // if image file present, upload to s3 and overwrite the default img
-    if (file) {
-      console.log(file.mimetype);
-      const allowedImgTypes = ["image/jpeg", "image/png"];
-      if (allowedImgTypes.includes(file.mimetype)) {
-        console.log("file type allowed");
-        const result = await uploadFile(file);
-        img = result.Location;
-      }
-    }
-
-    const { username, email, password, company, location, description } =
-      req.body;
+    const { username, email, password } = req.body;
     // confirm username and email is not taken
     const userAlreadyExists = await User.findOne({
       $or: [
@@ -43,34 +22,35 @@ router.post("/register", async (req, res) => {
     console.log("email: ", email);
     console.log("user: ", userAlreadyExists);
     if (userAlreadyExists) {
+        console.log("user exist");
       res.json({ error: "Username / email already registered" });
       return;
     }
 
-    const hashedPassword = await argon2.hash(password);
+    const hashedPassword = await argon2.hash(req.body.password);
 
     const newUser = new User({
       username: req.body.username,
       email: req.body.email,
       password: hashedPassword,
-      designs: [],
-      collabs: [],
-      image: img,
-      company,
-      location,
-      description,
-      collabRequests: [],
-      acceptedRequests: [],
     });
-    await newUser.save();
-    req.session.user = newUser;
-    res.json(newUser);
+
+
+
+    // await newUser.save();
+    await User.create(req.body, (err, newUser) => {
+        req.session.user = newUser;
+          // res.json(newUser);
+          res.redirect('/')
+        });
+
+
+
   } catch (err) {
     res.json(err);
   }
 });
 
-// login user
 router.post("/login", async (req, res) => {
   const { username, password } = req.body;
 
@@ -97,7 +77,6 @@ router.post("/login", async (req, res) => {
   res.json({ error: "Passwords didn't match" });
 });
 
-// logout user
 router.post("/logout", async (req, res) => {
   await req.session.destroy();
   res.json({ destroyed: true });
