@@ -24,6 +24,20 @@ router.post("/create", async (req, res) => {
 });
 
 // edit document
+router.put("/edit/:editid", async (req, res) => {
+  try {
+    const { editid } = req.params;
+    const { update } = req.body;
+    console.log("editod: ", editid);
+    console.log("update: ", update);
+    const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
+      new: true,
+    });
+    res.json(updatedDoc);
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
 
 // move document to trash
 router.put("/trash/:designid", async (req, res) => {
