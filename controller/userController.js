@@ -1,20 +1,20 @@
 const express = require("express");
 const User = require("../model/User");
 const argon2 = require("argon2");
-<<<<<<< HEAD
-=======
+// <<<<<<< HEAD
+// =======
 const multer = require("multer");
 // const { uploadFile } = require("../utils/s3");
 
-// const upload = multer({ dest: "uploads/" });
->>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
+// // const upload = multer({ dest: "uploads/" });
+// >>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
 
 const router = express.Router();
 
 
 router.post("/register", async (req, res) => {
-<<<<<<< HEAD
-=======
+// <<<<<<< HEAD
+// =======
   try {
     // upload user avatar to s3 and capture img path
     // const file = req.file;
@@ -32,7 +32,7 @@ router.post("/register", async (req, res) => {
     //     img = result.Location;
     //   }
     // }
->>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
+// >>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
 
   try {
     const { username, email, password } = req.body;
@@ -104,12 +104,12 @@ router.post("/login", async (req, res) => {
   res.json({ error: "Passwords didn't match" });
 });
 
-<<<<<<< HEAD
+// <<<<<<< HEAD
 router.post("/logout", async (req, res) => {
-=======
+// =======
 // logout user
 router.delete("/logout", async (req, res) => {
->>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
+// >>>>>>> 9ef6a1759395ce1df1544ff72bdf8bfe1cdfcadb
   await req.session.destroy();
   res.json({ destroyed: true });
 });
