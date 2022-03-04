@@ -2,6 +2,11 @@ const express = require("express");
 const Design = require("../model/Design");
 const User = require("../model/User");
 const router = express.Router();
+const multer = require("multer");
+
+const uploadFile = require("../utils/s3");
+
+const upload = multer({ dest: "public/" });
 
 // create a new design document starting from the name property
 router.post("/create", async (req, res) => {
@@ -43,6 +48,95 @@ router.put("/edit/:editid", async (req, res) => {
     res.json(updatedDoc);
   } catch (err) {
     res.json({ error: err });
+  }
+});
+
+// edit document main images
+router.put("/edit/image/:editid", upload.single("image"), async (req, res) => {
+  try {
+    const { editid } = req.params;
+
+    const file = req.file;
+    let update = {};
+    const updateField = req.body.updateField;
+    const updateIndex = req.body.updateIndex;
+
+    // if image file present, upload to s3 and overwrite the default img
+    if (file) {
+      console.log(file.mimetype);
+      const allowedImgTypes = ["image/jpeg", "image/png"];
+      if (allowedImgTypes.includes(file.mimetype)) {
+        console.log("file type allowed");
+        const result = await uploadFile(file);
+        img = result.Location;
+
+        if (updateField === "main-image") {
+          const updatedDoc = await Design.findByIdAndUpdate(
+            editid,
+            { image: img },
+            {
+              new: true,
+            }
+          );
+          res.json(updatedDoc);
+        } else {
+          const originalDoc = await Design.findById(editid);
+
+          let itemToUpdate = originalDoc[updateField][updateIndex];
+          itemToUpdate.image = img;
+          const itemsBeforeUpdate = originalDoc[updateField].slice(
+            0,
+            updateIndex
+          );
+          const itemsAfterUpdate = originalDoc[updateField].slice(
+            updateIndex + 1
+          );
+          const updatedArray = [
+            ...itemsBeforeUpdate,
+            itemToUpdate,
+            ...itemsAfterUpdate,
+          ];
+
+          update[updateField] = updatedArray;
+          const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
+            new: true,
+          });
+          res.json(updatedDoc);
+        }
+      }
+    } else {
+      res.json({ error: "no image found" });
+    }
+
+    console.log("editod: ", editid);
+    console.log("update: ", update);
+    const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
+      new: true,
+    });
+    res.json(updatedDoc);
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
+
+// add image to s3 and return url
+// used when batching an update for cards, locations, etc. in arrays
+router.put("/image-upload", upload.single("image"), async (req, res) => {
+  const file = req.file;
+  // if image file present, upload to s3 and overwrite the default img
+  if (file) {
+    console.log(file.mimetype);
+    const allowedImgTypes = ["image/jpeg", "image/png"];
+    if (allowedImgTypes.includes(file.mimetype)) {
+      console.log("file type allowed");
+      const result = await uploadFile(file);
+      img = result.Location;
+      res.json({ image: img });
+    } else {
+      res.json({ error: "only jpeg / png allowed" });
+    }
+  } else {
+    res.json({ error: "no image found" });
   }
 });
 
