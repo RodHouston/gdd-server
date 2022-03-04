@@ -111,6 +111,42 @@ router.delete("/logout", async (req, res) => {
 
 // get user data from cookie-sessions
 // "me" query
+router.get("/:userid", async (req, res) => {
+  try {
+    const { userid } = req.params;
+    const user = await User.findById(userid);
+    console.log("is this thing on?");
+    // get designs user owns and collaborates on
+    const collabs = user.collabs; // [ design_id]
+    const designs = user.designs;
+    const allDesigns = await Design.find({
+      _id: { $in: [...collabs, ...designs] },
+    });
+    const myDesigns = allDesigns.filter(
+      (d) => String(d.creator) === String(user._id)
+    );
+    const collabDesigns = allDesigns.filter(
+      (d) => String(d.creator) !== String(user._id)
+    );
+
+    // get colloborator ids > user _ids
+    const collaborators = await User.find({
+      _id: { $in: user.collaborators },
+    });
+
+    res.json({
+      user: user,
+      myDesigns,
+      collabDesigns,
+      collaborators,
+    });
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
+
+// get user data from cookie-sessions
+// "me" query
 router.get("/", async (req, res) => {
   try {
     // get designs user owns and collaborates on
