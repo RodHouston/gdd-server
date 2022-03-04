@@ -77,12 +77,6 @@ const main = async () => {
   // set up app to refresh user data on each page
   app.use(isAuth);
 
-  // set up routes
-  app.get("/", (req, res) => {
-    console.log(req.session);
-    res.json({ hello: "world" });
-  });
-
   app.get("/protected", (req, res) => {
     console.log(req.session);
     console.log("USER: ", req.session.user);

@@ -105,6 +105,29 @@ router.get("/user", async (req, res) => {
   }
 });
 
+// search for specific documents
+router.post("/search", async (req, res) => {
+  console.log("hello?");
+  console.log(req.body);
+  try {
+    let searchParams = req.body.searchParams;
+    if (searchParams.username) {
+      const creators = await User.find({
+        username: req.body.searchParams.username,
+      });
+
+      const creatorIds = creators.map((c) => c._id);
+      searchParams.creator = { $in: creatorIds };
+    }
+
+    const docs = await Design.find(searchParams);
+    console.log(docs);
+    res.json(docs);
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
+
 // get all specified documents
 router.get("/", async (req, res) => {
   try {
