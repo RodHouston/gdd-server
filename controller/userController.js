@@ -6,7 +6,6 @@ const multer = require("multer");
 
 const router = express.Router();
 
-// Old Register pre-commit
 const uploadFile = require("../utils/s3");
 
 const upload = multer({ dest: "public/" });
