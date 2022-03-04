@@ -107,7 +107,6 @@ router.get("/user", async (req, res) => {
 
 // search for specific documents
 router.post("/search", async (req, res) => {
-  console.log("hello?");
   console.log(req.body);
   try {
     let searchParams = req.body.searchParams;
