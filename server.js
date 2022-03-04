@@ -8,6 +8,7 @@ const connectRedis = require("connect-redis");
 const userController = require("./controller/userController");
 const designController = require("./controller/designController");
 const isAuth = require("./utils/isAuth");
+const fileUpload = require("express-fileupload");
 
 const main = async () => {
   // initialize the app
@@ -76,12 +77,8 @@ const main = async () => {
 
   // set up app to refresh user data on each page
   app.use(isAuth);
-
-  // set up routes
-  app.get("/", (req, res) => {
-    console.log(req.session);
-    res.json({ hello: "world" });
-  });
+  app.use(express.static("public"));
+  //   app.use(fileUpload());
 
   app.get("/protected", (req, res) => {
     console.log(req.session);
