@@ -51,7 +51,7 @@ router.put("/edit/:editid", async (req, res) => {
   }
 });
 
-// edit document images
+// edit document main images
 router.put("/edit/image/:editid", upload.single("image"), async (req, res) => {
   try {
     const { editid } = req.params;
@@ -116,6 +116,27 @@ router.put("/edit/image/:editid", upload.single("image"), async (req, res) => {
     res.json(updatedDoc);
   } catch (err) {
     res.json({ error: err });
+  }
+});
+
+// add image to s3 and return url
+// used when batching an update for cards, locations, etc. in arrays
+router.put("/image-upload", upload.single("image"), async (req, res) => {
+  const file = req.file;
+  // if image file present, upload to s3 and overwrite the default img
+  if (file) {
+    console.log(file.mimetype);
+    const allowedImgTypes = ["image/jpeg", "image/png"];
+    if (allowedImgTypes.includes(file.mimetype)) {
+      console.log("file type allowed");
+      const result = await uploadFile(file);
+      img = result.Location;
+      res.json({ image: img });
+    } else {
+      res.json({ error: "only jpeg / png allowed" });
+    }
+  } else {
+    res.json({ error: "no image found" });
   }
 });
 
