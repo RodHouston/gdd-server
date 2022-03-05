@@ -57,9 +57,6 @@ router.put("/edit/image/:editid", upload.single("image"), async (req, res) => {
     const { editid } = req.params;
 
     const file = req.file;
-    let update = {};
-    const updateField = req.body.updateField;
-    const updateIndex = req.body.updateIndex;
 
     // if image file present, upload to s3 and overwrite the default img
     if (file) {
@@ -69,51 +66,18 @@ router.put("/edit/image/:editid", upload.single("image"), async (req, res) => {
         console.log("file type allowed");
         const result = await uploadFile(file);
         img = result.Location;
-
-        if (updateField === "main-image") {
-          const updatedDoc = await Design.findByIdAndUpdate(
-            editid,
-            { image: img },
-            {
-              new: true,
-            }
-          );
-          res.json(updatedDoc);
-        } else {
-          const originalDoc = await Design.findById(editid);
-
-          let itemToUpdate = originalDoc[updateField][updateIndex];
-          itemToUpdate.image = img;
-          const itemsBeforeUpdate = originalDoc[updateField].slice(
-            0,
-            updateIndex
-          );
-          const itemsAfterUpdate = originalDoc[updateField].slice(
-            updateIndex + 1
-          );
-          const updatedArray = [
-            ...itemsBeforeUpdate,
-            itemToUpdate,
-            ...itemsAfterUpdate,
-          ];
-
-          update[updateField] = updatedArray;
-          const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
+        const updatedDoc = await Design.findByIdAndUpdate(
+          editid,
+          { image: img },
+          {
             new: true,
-          });
-          res.json(updatedDoc);
-        }
+          }
+        );
+        res.json(updatedDoc);
       }
     } else {
       res.json({ error: "no image found" });
     }
-
-    console.log("editod: ", editid);
-    console.log("update: ", update);
-    const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
-      new: true,
-    });
-    res.json(updatedDoc);
   } catch (err) {
     res.json({ error: err });
   }

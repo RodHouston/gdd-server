@@ -10,6 +10,7 @@ const isAuth = async (req, res, next) => {
       await req.session.destroy(() => {});
       return next();
     }
+    console.log("auth user", user);
     req.session.user = user;
     return next();
   }
