@@ -67,6 +67,7 @@ router.post("/register", upload.single("image"), async (req, res) => {
     collabs: [],
     collabRequests: [],
     acceptedRequests: [],
+    collaboratorIds: [],
   });
 
   const result = await newUser.save();
@@ -111,10 +112,10 @@ router.delete("/logout", async (req, res) => {
 
 // get user data from cookie-sessions
 // "me" query
-router.get("/:userid", async (req, res) => {
+router.get("/:username", async (req, res) => {
   try {
-    const { userid } = req.params;
-    const user = await User.findById(userid);
+    const { username } = req.params;
+    const user = await User.findOne({ username }); // case
     console.log("is this thing on?");
     // get designs user owns and collaborates on
     const collabs = user.collabs; // [ design_id]
@@ -162,10 +163,13 @@ router.get("/", async (req, res) => {
       (d) => String(d.creator) !== String(req.session.user._id)
     );
 
+    console.log(req.session.user);
+    console.log("collab ids: ", req.session.user.collaboratorIds);
     // get colloborator ids > user _ids
     const collaborators = await User.find({
-      _id: { $in: req.session.user.collaborators },
+      _id: { $in: req.session.user.collaboratorIds },
     });
+    console.log("collabers", collaborators);
 
     res.json({
       user: req.session.user,
