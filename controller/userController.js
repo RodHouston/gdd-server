@@ -136,7 +136,8 @@ router.get("/:username", async (req, res) => {
     });
 
     res.json({
-      user: user,
+      myPage: req.session.user && req.session.user._id === user._id,
+      user,
       myDesigns,
       collabDesigns,
       collaborators,
@@ -172,6 +173,7 @@ router.get("/", async (req, res) => {
     console.log("collabers", collaborators);
 
     res.json({
+      myPage: true,
       user: req.session.user,
       myDesigns,
       collabDesigns,
