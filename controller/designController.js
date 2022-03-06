@@ -7,6 +7,8 @@ const multer = require("multer");
 const uploadFile = require("../utils/s3");
 const checkIsMyProject = require("../utils/checkIsMyProject");
 const checkPendingCollabRequest = require("../utils/checkCollabRequest");
+const confirmDesignCreator = require("../utils/confirmDesignCreator");
+const getCollaborators = require("../utils/getCollaborators");
 
 const upload = multer({ dest: "public/" });
 
@@ -155,24 +157,119 @@ router.delete("/delete/:designid", async (req, res) => {
   }
 });
 
+// add user as collaborator
+router.post("/join/accept", async (req, res) => {
+  //   try {
+  const { designId, requestingUserId } = req.body;
+
+  const creator = await User.findById(req.session.user._id);
+  console.log("creator:", creator);
+  const alreadyCollabUser = creator.collaboratorIds
+    .map((c) => String(c))
+    .includes(String(requestingUserId));
+
+  //   const requestRemovalIndex = creator.collabRequests.findIndex(
+  //     (cr) => String(cr) === String(requestingUserId)
+  //   );
+  //   const updatedCollabRequests =
+  //     requestRemovalIndex >= 0
+  //       ? [
+  //           ...creator.collabRequests.slice(0, requestRemovalIndex),
+  //           ...creator.collabRequests.slice(0, requestRemovalIndex + 1),
+  //         ]
+  //       : creator.collabRequests;
+
+  //add collaborator to collaborators list if not already on
+  // remove from collabrequest on User
+  if (!alreadyCollabUser) {
+    await User.findByIdAndUpdate(req.session.user._id, {
+      $push: { collaboratorIds: [requestingUserId] },
+      $pull: { collabRequests: [requestingUserId] },
+    });
+  } else {
+    await User.findByIdAndUpdate(req.session.user._id, {
+      $pull: { collabRequests: [requestingUserId] },
+    });
+  }
+
+  // add to acceptedRequests on collaborators User object
+  const collabUser = await User.findByIdAndUpdate(
+    requestingUserId,
+    {
+      $push: {
+        acceptedRequests: [designId],
+        collaboratorIds: [req.session.user._id],
+        collabs: [designId],
+      },
+    },
+    { new: true }
+  );
+  console.log("collabUser: ", collabUser);
+
+  // add to collaborators on Design
+  // remove from collabRequest on Design
+  const updatedDoc = await Design.findByIdAndUpdate(
+    designId,
+    {
+      $push: { collaborators: [requestingUserId] },
+      $pull: { collabRequestUsers: requestingUserId },
+    },
+    { new: true }
+  );
+
+  const pendingCollabRequest = checkPendingCollabRequest(
+    req.session.user,
+    updatedDoc
+  );
+
+  const { collaborators, collabRequestUserData } = await getCollaborators(
+    updatedDoc
+  );
+
+  res.json({
+    designDoc: updatedDoc,
+    myProject: true,
+    pendingCollabRequest,
+    isDesignCreator: true,
+    collaborators,
+    collabRequestUserData,
+  });
+  //   } catch (err) {
+  //     res.json({ error: err });
+  //   }
+});
+
+// reject user as collaborator
+
 // request to join project
 router.post("/join", async (req, res) => {
   try {
     // add user id to collab request users on design object
-    const updatedDoc = await Design.findByIdAndUpdate(req.body.designId, {
-      $push: { collabRequestUsers: req.session.user._id },
-    });
+    const updatedDoc = await Design.findByIdAndUpdate(
+      req.body.designId,
+      {
+        $push: { collabRequestUsers: [req.session.user._id] },
+      },
+      { new: true }
+    );
 
     // add design id to collab requests on the design owner's object
     await User.findByIdAndUpdate(updatedDoc.creator, {
       $push: { collabRequests: req.body.designId },
     });
 
+    const { collaborators, collabRequestUserData } = await getCollaborators(
+      updatedDoc
+    );
+
     // return updated doc
     res.json({
       designDoc: updatedDoc,
       myProject: false,
       pendingCollabRequest: true,
+      isDesignCreator: false,
+      collaborators,
+      collabRequestUserData,
     });
   } catch (err) {
     res.json({ error: err });
@@ -180,10 +277,6 @@ router.post("/join", async (req, res) => {
 });
 
 // remove self from project/ rescind request
-
-// add user as collaborator
-
-// remove user as collaborator
 
 // get individual document
 router.get("/:designid", async (req, res) => {
@@ -194,10 +287,19 @@ router.get("/:designid", async (req, res) => {
       req.session.user,
       designDoc
     );
+    const isDesignCreator = confirmDesignCreator(req.session.user, designDoc);
+
+    const { collaborators, collabRequestUserData } = await getCollaborators(
+      designDoc
+    );
+
     res.json({
       designDoc,
       myProject,
       pendingCollabRequest,
+      isDesignCreator,
+      collabRequestUserData,
+      collaborators,
     });
   } catch (err) {
     res.json({ error: err });
