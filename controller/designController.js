@@ -5,6 +5,8 @@ const router = express.Router();
 const multer = require("multer");
 
 const uploadFile = require("../utils/s3");
+const checkIsMyProject = require("../utils/checkIsMyProject");
+const checkPendingCollabRequest = require("../utils/checkCollabRequest");
 
 const upload = multer({ dest: "public/" });
 
@@ -16,6 +18,7 @@ router.post("/create", async (req, res) => {
       creator: req.session.user._id,
       image: "https://joybee.s3.amazonaws.com/37ca0cc0f10936bd31bd2ec38ae31e25",
       collaborators: [],
+      collabRequestUsers: [],
       characters: [],
       locations: [],
       items: [],
@@ -40,8 +43,12 @@ router.put("/edit/:editid", async (req, res) => {
   try {
     const { editid } = req.params;
     const { update } = req.body;
-    console.log("editod: ", editid);
-    console.log("update: ", update);
+    const originalDoc = await Design.findById(editid);
+    const myProject = checkIsMyProject(req.session.user, originalDoc);
+    if (!myProject) {
+      res.json({ error: "user does not have access to edit this project" });
+      return;
+    }
     const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
       new: true,
     });
@@ -55,6 +62,12 @@ router.put("/edit/:editid", async (req, res) => {
 router.put("/edit/image/:editid", upload.single("image"), async (req, res) => {
   try {
     const { editid } = req.params;
+    const originalDoc = await Design.findById(editid);
+    const myProject = checkIsMyProject(req.session.user, originalDoc);
+    if (!myProject) {
+      res.json({ error: "user does not have access to edit this project" });
+      return;
+    }
 
     const file = req.file;
 
@@ -107,7 +120,14 @@ router.put("/image-upload", upload.single("image"), async (req, res) => {
 // move document to trash
 router.put("/trash/:designid", async (req, res) => {
   try {
-    const updatedDoc = await Design.findByIdAndUpdate(req.params.designid, {
+    const { designid } = req.params;
+    const originalDoc = await Design.findById(designid);
+    const myProject = checkIsMyProject(req.session.user, originalDoc);
+    if (!myProject) {
+      res.json({ error: "user does not have access to edit this project" });
+      return;
+    }
+    const updatedDoc = await Design.findByIdAndUpdate(designid, {
       deleted: true,
     });
     res.json(updatedDoc);
@@ -119,7 +139,14 @@ router.put("/trash/:designid", async (req, res) => {
 // permadelete document
 router.delete("/delete/:designid", async (req, res) => {
   try {
-    await Design.findByIdAndDelete(req.params.designid);
+    const { designid } = req.params;
+    const originalDoc = await Design.findById(designid);
+    const myProject = checkIsMyProject(req.session.user, originalDoc);
+    if (!myProject) {
+      res.json({ error: "user does not have access to edit this project" });
+      return;
+    }
+    await Design.findByIdAndDelete(designid);
     // remove from collaborators as well
     // remove from user
     res.json({ deleted: true });
@@ -129,6 +156,28 @@ router.delete("/delete/:designid", async (req, res) => {
 });
 
 // request to join project
+router.post("/join", async (req, res) => {
+  try {
+    // add user id to collab request users on design object
+    const updatedDoc = await Design.findByIdAndUpdate(req.body.designId, {
+      $push: { collabRequestUsers: req.session.user._id },
+    });
+
+    // add design id to collab requests on the design owner's object
+    await User.findByIdAndUpdate(updatedDoc.creator, {
+      $push: { collabRequests: req.body.designId },
+    });
+
+    // return updated doc
+    res.json({
+      designDoc: updatedDoc,
+      myProject: false,
+      pendingCollabRequest: true,
+    });
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
 
 // remove self from project/ rescind request
 
@@ -139,8 +188,17 @@ router.delete("/delete/:designid", async (req, res) => {
 // get individual document
 router.get("/:designid", async (req, res) => {
   try {
-    const doc = await Design.findById(req.params.designid);
-    res.json(doc);
+    const designDoc = await Design.findById(req.params.designid);
+    const myProject = checkIsMyProject(req.session.user, designDoc);
+    const pendingCollabRequest = checkPendingCollabRequest(
+      req.session.user,
+      designDoc
+    );
+    res.json({
+      designDoc,
+      myProject,
+      pendingCollabRequest,
+    });
   } catch (err) {
     res.json({ error: err });
   }
