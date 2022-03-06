@@ -184,11 +184,11 @@ router.post("/join/accept", async (req, res) => {
   if (!alreadyCollabUser) {
     await User.findByIdAndUpdate(req.session.user._id, {
       $push: { collaboratorIds: [requestingUserId] },
-      $pull: { collabRequests: [requestingUserId] },
+      $pull: { collabRequests: requestingUserId },
     });
   } else {
     await User.findByIdAndUpdate(req.session.user._id, {
-      $pull: { collabRequests: [requestingUserId] },
+      $pull: { collabRequests: requestingUserId },
     });
   }
 
@@ -240,6 +240,45 @@ router.post("/join/accept", async (req, res) => {
 });
 
 // reject user as collaborator
+router.post("/join/reject", async (req, res) => {
+  const { designId, requestingUserId } = req.body;
+
+  // remove collab request from project
+  const updatedDoc = await Design.findByIdAndUpdate(
+    designId,
+    {
+      $pull: { collabRequestUsers: requestingUserId },
+    },
+    { new: true }
+  );
+
+  // remove collab request from project creator
+  const updatedCreator = await User.findByIdAndUpdate(
+    req.session.user._id,
+    {
+      $pull: { collabRequests: requestingUserId },
+    },
+    { new: true }
+  );
+
+  const pendingCollabRequest = checkPendingCollabRequest(
+    req.session.user,
+    updatedDoc
+  );
+
+  const { collaborators, collabRequestUserData } = await getCollaborators(
+    updatedDoc
+  );
+
+  res.json({
+    designDoc: updatedDoc,
+    myProject: true,
+    pendingCollabRequest,
+    isDesignCreator: true,
+    collaborators,
+    collabRequestUserData,
+  });
+});
 
 // request to join project
 router.post("/join", async (req, res) => {
@@ -255,7 +294,7 @@ router.post("/join", async (req, res) => {
 
     // add design id to collab requests on the design owner's object
     await User.findByIdAndUpdate(updatedDoc.creator, {
-      $push: { collabRequests: req.body.designId },
+      $push: { collabRequests: [req.session.user._id] },
     });
 
     const { collaborators, collabRequestUserData } = await getCollaborators(
