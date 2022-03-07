@@ -315,34 +315,6 @@ router.post("/join", async (req, res) => {
 
 // remove self from project/ rescind request
 
-// get individual document
-router.get("/:designid", async (req, res) => {
-  try {
-    const designDoc = await Design.findById(req.params.designid);
-    const myProject = checkIsMyProject(req.session.user, designDoc);
-    const pendingCollabRequest = checkPendingCollabRequest(
-      req.session.user,
-      designDoc
-    );
-    const isDesignCreator = confirmDesignCreator(req.session.user, designDoc);
-
-    const { creator, collaborators, collabRequestUserData } =
-      await getCreatorAndCollaborators(designDoc);
-
-    res.json({
-      creator,
-      designDoc,
-      myProject,
-      pendingCollabRequest,
-      isDesignCreator,
-      collabRequestUserData,
-      collaborators,
-    });
-  } catch (err) {
-    res.json({ error: err });
-  }
-});
-
 // get user docs
 router.get("/user", async (req, res) => {
   try {
@@ -377,6 +349,34 @@ router.post("/search", async (req, res) => {
     const docs = await Design.find(searchParams);
     console.log(docs);
     res.json(docs);
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
+
+// get individual document
+router.get("/:designid", async (req, res) => {
+  try {
+    const designDoc = await Design.findById(req.params.designid);
+    const myProject = checkIsMyProject(req.session.user, designDoc);
+    const pendingCollabRequest = checkPendingCollabRequest(
+      req.session.user,
+      designDoc
+    );
+    const isDesignCreator = confirmDesignCreator(req.session.user, designDoc);
+
+    const { creator, collaborators, collabRequestUserData } =
+      await getCreatorAndCollaborators(designDoc);
+
+    res.json({
+      creator,
+      designDoc,
+      myProject,
+      pendingCollabRequest,
+      isDesignCreator,
+      collabRequestUserData,
+      collaborators,
+    });
   } catch (err) {
     res.json({ error: err });
   }
