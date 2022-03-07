@@ -8,7 +8,7 @@ const uploadFile = require("../utils/s3");
 const checkIsMyProject = require("../utils/checkIsMyProject");
 const checkPendingCollabRequest = require("../utils/checkCollabRequest");
 const confirmDesignCreator = require("../utils/confirmDesignCreator");
-const getCollaborators = require("../utils/getCollaborators");
+const getCreatorAndCollaborators = require("../utils/getCreatorAndCollaborators");
 
 const upload = multer({ dest: "public/" });
 
@@ -163,7 +163,6 @@ router.post("/join/accept", async (req, res) => {
   const { designId, requestingUserId } = req.body;
 
   const creator = await User.findById(req.session.user._id);
-  console.log("creator:", creator);
   const alreadyCollabUser = creator.collaboratorIds
     .map((c) => String(c))
     .includes(String(requestingUserId));
@@ -204,7 +203,6 @@ router.post("/join/accept", async (req, res) => {
     },
     { new: true }
   );
-  console.log("collabUser: ", collabUser);
 
   // add to collaborators on Design
   // remove from collabRequest on Design
@@ -222,11 +220,11 @@ router.post("/join/accept", async (req, res) => {
     updatedDoc
   );
 
-  const { collaborators, collabRequestUserData } = await getCollaborators(
-    updatedDoc
-  );
+  const { collaborators, collabRequestUserData } =
+    await getCreatorAndCollaborators(updatedDoc);
 
   res.json({
+    creator,
     designDoc: updatedDoc,
     myProject: true,
     pendingCollabRequest,
@@ -266,11 +264,11 @@ router.post("/join/reject", async (req, res) => {
     updatedDoc
   );
 
-  const { collaborators, collabRequestUserData } = await getCollaborators(
-    updatedDoc
-  );
+  const { creator, collaborators, collabRequestUserData } =
+    await getCreatorAndCollaborators(updatedDoc);
 
   res.json({
+    creator,
     designDoc: updatedDoc,
     myProject: true,
     pendingCollabRequest,
@@ -297,12 +295,12 @@ router.post("/join", async (req, res) => {
       $push: { collabRequests: [req.session.user._id] },
     });
 
-    const { collaborators, collabRequestUserData } = await getCollaborators(
-      updatedDoc
-    );
+    const { creator, collaborators, collabRequestUserData } =
+      await getCreatorAndCollaborators(updatedDoc);
 
     // return updated doc
     res.json({
+      creator,
       designDoc: updatedDoc,
       myProject: false,
       pendingCollabRequest: true,
@@ -316,34 +314,6 @@ router.post("/join", async (req, res) => {
 });
 
 // remove self from project/ rescind request
-
-// get individual document
-router.get("/:designid", async (req, res) => {
-  try {
-    const designDoc = await Design.findById(req.params.designid);
-    const myProject = checkIsMyProject(req.session.user, designDoc);
-    const pendingCollabRequest = checkPendingCollabRequest(
-      req.session.user,
-      designDoc
-    );
-    const isDesignCreator = confirmDesignCreator(req.session.user, designDoc);
-
-    const { collaborators, collabRequestUserData } = await getCollaborators(
-      designDoc
-    );
-
-    res.json({
-      designDoc,
-      myProject,
-      pendingCollabRequest,
-      isDesignCreator,
-      collabRequestUserData,
-      collaborators,
-    });
-  } catch (err) {
-    res.json({ error: err });
-  }
-});
 
 // get user docs
 router.get("/user", async (req, res) => {
@@ -379,6 +349,34 @@ router.post("/search", async (req, res) => {
     const docs = await Design.find(searchParams);
     console.log(docs);
     res.json(docs);
+  } catch (err) {
+    res.json({ error: err });
+  }
+});
+
+// get individual document
+router.get("/:designid", async (req, res) => {
+  try {
+    const designDoc = await Design.findById(req.params.designid);
+    const myProject = checkIsMyProject(req.session.user, designDoc);
+    const pendingCollabRequest = checkPendingCollabRequest(
+      req.session.user,
+      designDoc
+    );
+    const isDesignCreator = confirmDesignCreator(req.session.user, designDoc);
+
+    const { creator, collaborators, collabRequestUserData } =
+      await getCreatorAndCollaborators(designDoc);
+
+    res.json({
+      creator,
+      designDoc,
+      myProject,
+      pendingCollabRequest,
+      isDesignCreator,
+      collabRequestUserData,
+      collaborators,
+    });
   } catch (err) {
     res.json({ error: err });
   }

@@ -110,6 +110,13 @@ router.delete("/logout", async (req, res) => {
   res.json({ destroyed: true });
 });
 
+// "me" query - get just user data
+router.get("/me", async (req, res) => {
+  console.log("hi");
+  console.log(req.session.user);
+  res.json(req.session.user);
+});
+
 // get user data from cookie-sessions
 // "me" query
 router.get("/:username", async (req, res) => {
@@ -148,7 +155,6 @@ router.get("/:username", async (req, res) => {
 });
 
 // get user data from cookie-sessions
-// "me" query
 router.get("/", async (req, res) => {
   try {
     // get designs user owns and collaborates on
