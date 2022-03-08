@@ -46,6 +46,7 @@ router.put("/edit/:editid", async (req, res) => {
     const { editid } = req.params;
     const { update } = req.body;
     const originalDoc = await Design.findById(editid);
+    const creator = await User.findById(originalDoc.creator);
     const myProject = checkIsMyProject(req.session.user, originalDoc);
     if (!myProject) {
       res.json({ error: "user does not have access to edit this project" });
@@ -54,7 +55,25 @@ router.put("/edit/:editid", async (req, res) => {
     const updatedDoc = await Design.findByIdAndUpdate(editid, update, {
       new: true,
     });
-    res.json(updatedDoc);
+
+    const pendingCollabRequest = checkPendingCollabRequest(
+      req.session.user,
+      updatedDoc
+    );
+    const isDesignCreator = confirmDesignCreator(req.session.user, updatedDoc);
+
+    const { collaborators, collabRequestUserData } =
+      await getCreatorAndCollaborators(updatedDoc);
+
+    res.json({
+      creator,
+      designDoc: updatedDoc,
+      myProject,
+      pendingCollabRequest,
+      isDesignCreator,
+      collaborators,
+      collabRequestUserData,
+    });
   } catch (err) {
     res.json({ error: err });
   }
