@@ -112,9 +112,11 @@ router.delete("/logout", async (req, res) => {
 
 // "me" query - get just user data
 router.get("/me", async (req, res) => {
-  console.log("hi");
-  console.log(req.session.user);
-  res.json(req.session.user);
+  if (req.session && req.session.user) {
+    res.json(req.session.user);
+  } else {
+    res.json(null);
+  }
 });
 
 // get user data from cookie-sessions
