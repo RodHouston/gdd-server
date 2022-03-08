@@ -141,7 +141,7 @@ router.get("/:username", async (req, res) => {
 
     // get colloborator ids > user _ids
     const collaborators = await User.find({
-      _id: { $in: user.collaborators },
+      _id: { $in: user.collaboratorIds },
     });
 
     res.json({
